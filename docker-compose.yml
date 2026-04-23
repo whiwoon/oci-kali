@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  tailscale-gateway:
+    image: tailscale/tailscale:latest
+    container_name: ts-kali-sidecar
+    hostname: kali
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY:?TS_AUTHKEY is not set. Run install.sh or create .env file.}
+    volumes:
+      - ts_state:/var/lib/tailscale
+      - /lib/modules:/lib/modules:ro
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  kali-machine:
+    build:
+      context: ./kali
+      args:
+        KALI_PASSWORD: ${KALI_PASSWORD:-kali}
+    container_name: kali-box
+    network_mode: "service:tailscale-gateway"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    depends_on:
+      tailscale-gateway:
+        condition: service_healthy
+    tty: true
+    stdin_open: true
+    volumes:
+      - kali_home:/home/kali
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  ts_state:
+  kali_home:
