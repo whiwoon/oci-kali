@@ -1,16 +1,27 @@
-FROM kalilinux/kali-rolling:latest
+FROM kalilinux/kali-last-release
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN echo "deb http://kali.download/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+ENV TZ=Asia/Seoul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "deb http://kali.download/kali kali-last-snapshot main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        xfce4 \
+        kali-desktop-xfce \
         xfce4-terminal \
         xrdp \
         xorgxrdp \
         sudo \
-        dbus-x11 && \
+        dbus-x11 \
+        wget \
+        unzip \
+        fontconfig \
+        tzdata && \
+    wget -q https://github.com/ryanoasis/nerd-fonts/releases/latest/download/D2Coding.zip -O /tmp/D2Coding.zip && \
+    unzip -q /tmp/D2Coding.zip -d /usr/share/fonts/D2Coding && \
+    fc-cache -fv && \
+    rm /tmp/D2Coding.zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
