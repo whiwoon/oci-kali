@@ -13,7 +13,7 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
 fi
 
 echo "[1/3] 실행 중인 도커 컨테이너 중지 및 삭제 (볼륨 포함)..."
-docker-compose down -v
+docker compose down -v
 
 echo "[2/3] 더 이상 사용하지 않는 로컬 빌드 이미지 삭제..."
 PROJECT_NAME=$(basename "$PWD")

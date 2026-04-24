@@ -10,8 +10,8 @@ if ! command -v docker &>/dev/null; then
     echo "오류: docker가 설치되어 있지 않습니다."
     exit 1
 fi
-if ! command -v docker-compose &>/dev/null; then
-    echo "오류: docker-compose가 설치되어 있지 않습니다."
+if ! docker compose version &>/dev/null; then
+    echo "오류: Docker Compose 플러그인이 설치되어 있지 않습니다. (Docker Desktop 또는 docker-compose-plugin 설치 필요)"
     exit 1
 fi
 
@@ -88,7 +88,7 @@ if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
     echo "빌드를 시작합니다. Kali 데스크톱 환경(약 2GB 이상) 다운로드로 시간이 다소 걸릴 수 있습니다..."
     echo ""
-    if docker-compose up -d --build; then
+    if docker compose up -d --build; then
         echo ""
         echo "==================================================================="
         echo " 완료! Tailscale Admin Console에서 'kali' 기기의 IP를 확인 후 RDP로 접속하세요."
@@ -103,5 +103,5 @@ if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
 else
     echo ""
     echo "나중에 실행하려면 아래 명령어를 사용하세요:"
-    echo "  docker-compose up -d --build"
+    echo "  docker compose up -d --build"
 fi
