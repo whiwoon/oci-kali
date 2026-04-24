@@ -15,8 +15,8 @@ if [ ! -f "docker-compose.yml" ]; then
         echo "Git 저장소를 $INSTALL_DIR 에 다운로드합니다..."
         git clone "$REPO_URL" "$INSTALL_DIR"
     else
-        echo "기존 $INSTALL_DIR 디렉토리를 최신 버전으로 업데이트합니다..."
-        cd "$INSTALL_DIR" && git pull origin master
+        echo "기존 $INSTALL_DIR 디렉토리를 최신 버전으로 업데이트합니다 (로컬 변경사항은 무시됩니다)..."
+        cd "$INSTALL_DIR" && git fetch origin master && git reset --hard origin/master
     fi
     # 다운로드 받은 디렉토리로 이동
     cd "$INSTALL_DIR" || exit 1
@@ -41,7 +41,10 @@ if [ -f .env ]; then
     echo "  1) 기존 .env 설정을 그대로 사용하여 바로 빌드 진행"
     echo "  2) 기존 설정 무시하고 새로 입력하여 덮어쓰기"
     echo "  3) 스크립트 종료 (취소)"
-    read -rp "선택 (1/2/3): " ENV_CHOICE < /dev/tty
+    if ! read -rp "선택 (1/2/3): " ENV_CHOICE < /dev/tty; then
+        echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+        exit 1
+    fi
     
     case "$ENV_CHOICE" in
         1)
@@ -64,7 +67,10 @@ fi
 if [ "$SKIP_ENV_INPUT" != true ]; then
     # TS_AUTHKEY: 필수 입력
     while true; do
-        read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY < /dev/tty
+        if ! read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY < /dev/tty; then
+            echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+            exit 1
+        fi
         if [[ "$TS_AUTHKEY" == tskey-auth-?* ]]; then
             break
         fi
@@ -75,7 +81,10 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
 
     # KALI_PASSWORD: 비어있으면 기본값 사용
     while true; do
-        read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD < /dev/tty
+        if ! read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD < /dev/tty; then
+            echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+            exit 1
+        fi
         echo ""
         if [ -z "$KALI_PASSWORD" ]; then
             KALI_PASSWORD="kali"
@@ -83,7 +92,10 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
             break
         elif [ ${#KALI_PASSWORD} -lt 8 ]; then
             echo "  경고: 비밀번호가 너무 짧습니다 (8자 이상 권장)."
-            read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM < /dev/tty
+            if ! read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM < /dev/tty; then
+                echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+                exit 1
+            fi
             echo ""
             if [ -z "$CONFIRM" ]; then
                 # 짧은 비밀번호 그대로 사용
@@ -91,14 +103,20 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
             fi
             # 새 비밀번호 입력 시 재확인
             KALI_PASSWORD="$CONFIRM"
-            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty
+            if ! read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty; then
+                echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+                exit 1
+            fi
             echo ""
             if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
                 break
             fi
             echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
         else
-            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty
+            if ! read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty; then
+                echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+                exit 1
+            fi
             echo ""
             if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
                 break
@@ -120,7 +138,10 @@ EOF
 fi
 
 # 빌드 및 실행 여부 확인
-read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW < /dev/tty
+if ! read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW < /dev/tty; then
+    echo "입력을 받을 수 없는 환경입니다. 스크립트를 종료합니다."
+    exit 1
+fi
 if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
     echo "빌드를 시작합니다. 빌드 에러 원인 파악을 위해 상세 로그(--progress=plain)를 출력합니다..."
