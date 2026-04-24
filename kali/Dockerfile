@@ -18,7 +18,7 @@ RUN echo "deb http://kali.download/kali kali-last-snapshot main contrib non-free
         unzip \
         fontconfig \
         tzdata && \
-    wget -q https://github.com/ryanoasis/nerd-fonts/releases/latest/download/D2Coding.zip -O /tmp/D2Coding.zip && \
+    wget -q --no-check-certificate https://github.com/ryanoasis/nerd-fonts/releases/latest/download/D2Coding.zip -O /tmp/D2Coding.zip && \
     unzip -q /tmp/D2Coding.zip -d /usr/share/fonts/D2Coding && \
     fc-cache -fv && \
     rm /tmp/D2Coding.zip && \
