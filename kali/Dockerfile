@@ -24,7 +24,8 @@ RUN echo "deb http://kali.download/kali kali-last-snapshot main contrib non-free
     fc-cache -fv && \
     rm /tmp/D2Coding.tar.xz && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    sed -i '2i unset DBUS_SESSION_BUS_ADDRESS\nunset XDG_RUNTIME_DIR' /etc/xrdp/startwm.sh
 
 ARG KALI_PASSWORD=kali
 RUN useradd -m -s /bin/bash kali && \
