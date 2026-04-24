@@ -2,7 +2,8 @@ FROM kalilinux/kali-rolling:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
+RUN echo "deb http://kali.download/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         xfce4 \
         xfce4-terminal \
