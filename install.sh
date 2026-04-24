@@ -86,9 +86,12 @@ echo ""
 read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW
 if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
-    echo "빌드를 시작합니다. Kali 데스크톱 환경(약 2GB 이상) 다운로드로 시간이 다소 걸릴 수 있습니다..."
+    echo "빌드를 시작합니다. ARM 아키텍처 호환성 및 네트워크 디버깅을 위해 상세 빌드 로그(--progress=plain)를 출력합니다..."
+    echo "시간이 다소 걸릴 수 있습니다..."
     echo ""
-    if docker compose up -d --build; then
+    # 상세 로그 출력을 위해 build를 먼저 실행
+    if docker compose build --progress=plain; then
+        docker compose up -d
         echo ""
         echo "==================================================================="
         echo " 완료! Tailscale Admin Console에서 'kali' 기기의 IP를 확인 후 RDP로 접속하세요."
@@ -97,11 +100,14 @@ if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
         echo "==================================================================="
     else
         echo ""
-        echo "오류: 빌드 또는 실행에 실패했습니다. 위 로그를 확인하세요."
+        echo "==================================================================="
+        echo "오류: 이미지 빌드에 실패했습니다."
+        echo "위의 상세 로그를 확인하여 어떤 패키지에서 문제가 발생했는지(예: ARM 지원 패키지 부재 등) 확인해주세요."
+        echo "==================================================================="
         exit 1
     fi
 else
     echo ""
     echo "나중에 실행하려면 아래 명령어를 사용하세요:"
-    echo "  docker compose up -d --build"
+    echo "  docker compose build --progress=plain && docker compose up -d"
 fi
