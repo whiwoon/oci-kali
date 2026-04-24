@@ -15,83 +15,98 @@ if ! docker compose version &>/dev/null; then
     exit 1
 fi
 
-# 기존 .env 파일 덮어쓰기 경고
+# 기존 .env 파일 처리 로직
+SKIP_ENV_INPUT=false
 if [ -f .env ]; then
-    echo "경고: .env 파일이 이미 존재합니다. 덮어쓰면 기존 설정이 사라집니다."
-    read -rp "계속 진행하시겠습니까? (y/N) " OVERWRITE
-    if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
-        echo "취소합니다."
-        exit 0
-    fi
-    echo ""
+    echo "경고: .env 파일이 이미 존재합니다."
+    echo "  1) 기존 .env 설정을 그대로 사용하여 바로 빌드 진행"
+    echo "  2) 기존 설정 무시하고 새로 입력하여 덮어쓰기"
+    echo "  3) 스크립트 종료 (취소)"
+    read -rp "선택 (1/2/3): " ENV_CHOICE
+    
+    case "$ENV_CHOICE" in
+        1)
+            echo ""
+            echo "기존 .env 파일을 사용하여 진행합니다."
+            SKIP_ENV_INPUT=true
+            ;;
+        2)
+            echo ""
+            echo "새로운 설정을 입력받습니다. (기존 .env 파일은 덮어씌워집니다)"
+            ;;
+        *)
+            echo ""
+            echo "취소합니다."
+            exit 0
+            ;;
+    esac
 fi
 
-# TS_AUTHKEY: 필수 입력
-while true; do
-    read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY
-    if [[ "$TS_AUTHKEY" == tskey-auth-?* ]]; then
-        break
-    fi
-    echo "  오류: 올바른 Auth Key 형식이 아닙니다. (tskey-auth-... 형식으로 입력하세요)"
-done
+if [ "$SKIP_ENV_INPUT" != true ]; then
+    # TS_AUTHKEY: 필수 입력
+    while true; do
+        read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY
+        if [[ "$TS_AUTHKEY" == tskey-auth-?* ]]; then
+            break
+        fi
+        echo "  오류: 올바른 Auth Key 형식이 아닙니다. (tskey-auth-... 형식으로 입력하세요)"
+    done
 
-echo ""
-
-# KALI_PASSWORD: 비어있으면 기본값 사용
-while true; do
-    read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD
     echo ""
-    if [ -z "$KALI_PASSWORD" ]; then
-        KALI_PASSWORD="kali"
-        echo "  기본값 'kali'로 설정됩니다. 접속 후 반드시 변경하세요."
-        break
-    elif [ ${#KALI_PASSWORD} -lt 8 ]; then
-        echo "  경고: 비밀번호가 너무 짧습니다 (8자 이상 권장)."
-        read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM
-        echo ""
-        if [ -z "$CONFIRM" ]; then
-            # 짧은 비밀번호 그대로 사용
-            break
-        fi
-        # 새 비밀번호 입력 시 재확인
-        KALI_PASSWORD="$CONFIRM"
-        read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
-        echo ""
-        if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
-            break
-        fi
-        echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
-    else
-        read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
-        echo ""
-        if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
-            break
-        fi
-        echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
-    fi
-done
 
-echo ""
+    # KALI_PASSWORD: 비어있으면 기본값 사용
+    while true; do
+        read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD
+        echo ""
+        if [ -z "$KALI_PASSWORD" ]; then
+            KALI_PASSWORD="kali"
+            echo "  기본값 'kali'로 설정됩니다. 접속 후 반드시 변경하세요."
+            break
+        elif [ ${#KALI_PASSWORD} -lt 8 ]; then
+            echo "  경고: 비밀번호가 너무 짧습니다 (8자 이상 권장)."
+            read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM
+            echo ""
+            if [ -z "$CONFIRM" ]; then
+                # 짧은 비밀번호 그대로 사용
+                break
+            fi
+            # 새 비밀번호 입력 시 재확인
+            KALI_PASSWORD="$CONFIRM"
+            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
+            echo ""
+            if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
+                break
+            fi
+            echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
+        else
+            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
+            echo ""
+            if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
+                break
+            fi
+            echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
+        fi
+    done
 
-# .env 파일 생성
-cat > .env <<EOF
+    echo ""
+
+    # .env 파일 생성
+    cat > .env <<EOF
 TS_AUTHKEY=${TS_AUTHKEY}
 KALI_PASSWORD=${KALI_PASSWORD}
 EOF
 
-echo ".env 파일이 생성되었습니다."
-echo ""
+    echo ".env 파일이 생성되었습니다."
+    echo ""
+fi
 
 # 빌드 및 실행 여부 확인
 read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW
 if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
-    echo "빌드를 시작합니다. ARM 아키텍처 호환성 및 네트워크 디버깅을 위해 상세 빌드 로그(--progress=plain)를 출력합니다..."
-    echo "시간이 다소 걸릴 수 있습니다..."
+    echo "빌드를 시작합니다. Kali 데스크톱 환경(약 2GB 이상) 다운로드로 시간이 다소 걸릴 수 있습니다..."
     echo ""
-    # 상세 로그 출력을 위해 build를 먼저 실행
-    if docker compose build --progress=plain; then
-        docker compose up -d
+    if docker compose up -d --build; then
         echo ""
         echo "==================================================================="
         echo " 완료! Tailscale Admin Console에서 'kali' 기기의 IP를 확인 후 RDP로 접속하세요."
@@ -100,14 +115,11 @@ if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
         echo "==================================================================="
     else
         echo ""
-        echo "==================================================================="
-        echo "오류: 이미지 빌드에 실패했습니다."
-        echo "위의 상세 로그를 확인하여 어떤 패키지에서 문제가 발생했는지(예: ARM 지원 패키지 부재 등) 확인해주세요."
-        echo "==================================================================="
+        echo "오류: 빌드 또는 실행에 실패했습니다. 위 로그를 확인하세요."
         exit 1
     fi
 else
     echo ""
     echo "나중에 실행하려면 아래 명령어를 사용하세요:"
-    echo "  docker compose build --progress=plain && docker compose up -d"
+    echo "  docker compose up -d --build"
 fi

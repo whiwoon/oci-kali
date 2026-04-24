@@ -8,6 +8,7 @@ RUN echo "deb http://kali.download/kali kali-rolling main contrib non-free non-f
         xfce4 \
         xfce4-terminal \
         xrdp \
+        xorgxrdp \
         sudo \
         dbus-x11 && \
     apt-get clean && \
