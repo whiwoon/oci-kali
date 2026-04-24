@@ -5,6 +5,25 @@ echo " OCI-Kali + Tailscale 설치 마법사"
 echo "==================================================================="
 echo ""
 
+REPO_URL="https://github.com/whiwoon/oci-kali.git"
+INSTALL_DIR="$HOME/oci-kali"
+
+# 스크립트가 curl 파이프로 실행되거나 다른 디렉토리에서 실행된 경우 처리
+if [ ! -f "docker-compose.yml" ]; then
+    echo "프로젝트 파일이 현재 디렉토리에 없습니다."
+    if [ ! -d "$INSTALL_DIR" ]; then
+        echo "Git 저장소를 $INSTALL_DIR 에 다운로드합니다..."
+        git clone "$REPO_URL" "$INSTALL_DIR"
+    else
+        echo "기존 $INSTALL_DIR 디렉토리를 최신 버전으로 업데이트합니다..."
+        cd "$INSTALL_DIR" && git pull origin master
+    fi
+    # 다운로드 받은 디렉토리로 이동
+    cd "$INSTALL_DIR" || exit 1
+    echo "작업 디렉토리를 $INSTALL_DIR 로 변경했습니다."
+    echo ""
+fi
+
 # Docker 설치 확인
 if ! command -v docker &>/dev/null; then
     echo "오류: docker가 설치되어 있지 않습니다."
@@ -104,9 +123,12 @@ fi
 read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW
 if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
-    echo "빌드를 시작합니다. Kali 데스크톱 환경(약 2GB 이상) 다운로드로 시간이 다소 걸릴 수 있습니다..."
+    echo "빌드를 시작합니다. 빌드 에러 원인 파악을 위해 상세 로그(--progress=plain)를 출력합니다..."
+    echo "시간이 다소 걸릴 수 있습니다..."
     echo ""
-    if docker compose up -d --build; then
+    # 상세 로그 출력을 위해 build를 먼저 실행
+    if docker compose build --progress=plain; then
+        docker compose up -d
         echo ""
         echo "==================================================================="
         echo " 완료! Tailscale Admin Console에서 'kali' 기기의 IP를 확인 후 RDP로 접속하세요."
@@ -115,11 +137,14 @@ if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
         echo "==================================================================="
     else
         echo ""
-        echo "오류: 빌드 또는 실행에 실패했습니다. 위 로그를 확인하세요."
+        echo "==================================================================="
+        echo "오류: 이미지 빌드에 실패했습니다."
+        echo "위의 상세 로그를 확인하여 어떤 과정에서 에러가 발생했는지 확인해주세요."
+        echo "==================================================================="
         exit 1
     fi
 else
     echo ""
     echo "나중에 실행하려면 아래 명령어를 사용하세요:"
-    echo "  docker compose up -d --build"
+    echo "  docker compose build --progress=plain && docker compose up -d"
 fi
