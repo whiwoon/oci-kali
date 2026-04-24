@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   tailscale-gateway:
     image: tailscale/tailscale:latest
