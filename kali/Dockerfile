@@ -14,14 +14,15 @@ RUN echo "deb http://kali.download/kali kali-last-snapshot main contrib non-free
         xorgxrdp \
         sudo \
         dbus-x11 \
-        wget \
-        unzip \
+        curl \
+        xz-utils \
         fontconfig \
         tzdata && \
-    wget -q --no-check-certificate https://github.com/ryanoasis/nerd-fonts/releases/latest/download/D2Coding.zip -O /tmp/D2Coding.zip && \
-    unzip -q /tmp/D2Coding.zip -d /usr/share/fonts/D2Coding && \
+    mkdir -p /usr/share/fonts/D2Coding && \
+    curl -fLko /tmp/D2Coding.tar.xz https://github.com/ryanoasis/nerd-fonts/releases/latest/download/D2Coding.tar.xz && \
+    tar -xf /tmp/D2Coding.tar.xz -C /usr/share/fonts/D2Coding && \
     fc-cache -fv && \
-    rm /tmp/D2Coding.zip && \
+    rm /tmp/D2Coding.tar.xz && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
