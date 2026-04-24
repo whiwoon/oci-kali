@@ -4,8 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        kali-desktop-xfce \
-        xorgxrdp \
+        xfce4 \
+        xfce4-terminal \
         xrdp \
         sudo \
         dbus-x11 && \
