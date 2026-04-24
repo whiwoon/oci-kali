@@ -8,7 +8,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN echo "deb http://kali.download/kali kali-last-snapshot main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        kali-desktop-xfce \
+        xfce4 \
         xfce4-terminal \
         xrdp \
         xorgxrdp \
