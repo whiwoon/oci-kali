@@ -41,7 +41,7 @@ if [ -f .env ]; then
     echo "  1) 기존 .env 설정을 그대로 사용하여 바로 빌드 진행"
     echo "  2) 기존 설정 무시하고 새로 입력하여 덮어쓰기"
     echo "  3) 스크립트 종료 (취소)"
-    read -rp "선택 (1/2/3): " ENV_CHOICE
+    read -rp "선택 (1/2/3): " ENV_CHOICE < /dev/tty
     
     case "$ENV_CHOICE" in
         1)
@@ -64,7 +64,7 @@ fi
 if [ "$SKIP_ENV_INPUT" != true ]; then
     # TS_AUTHKEY: 필수 입력
     while true; do
-        read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY
+        read -rp "Tailscale Auth Key (tskey-auth-...): " TS_AUTHKEY < /dev/tty
         if [[ "$TS_AUTHKEY" == tskey-auth-?* ]]; then
             break
         fi
@@ -75,7 +75,7 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
 
     # KALI_PASSWORD: 비어있으면 기본값 사용
     while true; do
-        read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD
+        read -rsp "Kali 사용자 비밀번호 (Enter = 기본값 'kali' 사용): " KALI_PASSWORD < /dev/tty
         echo ""
         if [ -z "$KALI_PASSWORD" ]; then
             KALI_PASSWORD="kali"
@@ -83,7 +83,7 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
             break
         elif [ ${#KALI_PASSWORD} -lt 8 ]; then
             echo "  경고: 비밀번호가 너무 짧습니다 (8자 이상 권장)."
-            read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM
+            read -rsp "  다시 입력하거나 Enter로 이 비밀번호를 그대로 사용: " CONFIRM < /dev/tty
             echo ""
             if [ -z "$CONFIRM" ]; then
                 # 짧은 비밀번호 그대로 사용
@@ -91,14 +91,14 @@ if [ "$SKIP_ENV_INPUT" != true ]; then
             fi
             # 새 비밀번호 입력 시 재확인
             KALI_PASSWORD="$CONFIRM"
-            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
+            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty
             echo ""
             if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
                 break
             fi
             echo "  오류: 비밀번호가 일치하지 않습니다. 다시 입력하세요."
         else
-            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM
+            read -rsp "  비밀번호 확인: " KALI_PASSWORD_CONFIRM < /dev/tty
             echo ""
             if [ "$KALI_PASSWORD" = "$KALI_PASSWORD_CONFIRM" ]; then
                 break
@@ -120,7 +120,7 @@ EOF
 fi
 
 # 빌드 및 실행 여부 확인
-read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW
+read -rp "지금 바로 빌드하고 실행하시겠습니까? (y/N) " RUN_NOW < /dev/tty
 if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
     echo ""
     echo "빌드를 시작합니다. 빌드 에러 원인 파악을 위해 상세 로그(--progress=plain)를 출력합니다..."
